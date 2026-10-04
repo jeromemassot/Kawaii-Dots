@@ -1,0 +1,729 @@
+/* ==========================================================================
+   Kawaii Agent - Fluid Gooey Morphing Dots with Crisp Foreground Face
+   ========================================================================== */
+
+:root {
+  --kawaii-size: 240px;
+  --kawaii-ink: #2d3748;
+  --kawaii-mouth-scale: 1;
+  --kawaii-look-x: 0px;
+  --kawaii-look-y: 0px;
+
+  /* Default Persona (Mochi / Assistant: Soft Pastel Pink & Peach) */
+  --blob-color-1: #ffb7b2;
+  --blob-color-2: #ffdac1;
+  --blob-color-3: #ffd1dc;
+  --blob-glow: rgba(255, 183, 178, 0.45);
+  --blush-color: rgba(255, 107, 129, 0.5);
+}
+
+/* --------------------------------------------------------------------------
+   Persona Color Themes
+   -------------------------------------------------------------------------- */
+[data-persona="nova"],
+.persona-nova {
+  /* Planner / Architect: Lavender & Cosmic Sky */
+  --blob-color-1: #d8b4e2;
+  --blob-color-2: #c5b3ec;
+  --blob-color-3: #b5d0ff;
+  --blob-glow: rgba(197, 179, 236, 0.45);
+  --blush-color: rgba(181, 148, 234, 0.5);
+}
+
+[data-persona="byte"],
+.persona-byte {
+  /* Coder / Builder: Mint & Pastel Aqua */
+  --blob-color-1: #a8e6cf;
+  --blob-color-2: #bbf2f6;
+  --blob-color-3: #88d8b0;
+  --blob-glow: rgba(168, 230, 207, 0.45);
+  --blush-color: rgba(80, 200, 160, 0.45);
+}
+
+[data-persona="sage"],
+.persona-sage {
+  /* Researcher: Warm Buttercup & Sunlit Honey */
+  --blob-color-1: #ffeaa7;
+  --blob-color-2: #fdcb6e;
+  --blob-color-3: #fce38a;
+  --blob-glow: rgba(253, 203, 110, 0.45);
+  --blush-color: rgba(243, 156, 18, 0.45);
+}
+
+[data-persona="echo"],
+.persona-echo {
+  /* Reviewer / Critic: Coral & Soft Rose */
+  --blob-color-1: #ffaaa5;
+  --blob-color-2: #ffd3b6;
+  --blob-color-3: #ff8b94;
+  --blob-glow: rgba(255, 139, 148, 0.45);
+  --blush-color: rgba(255, 107, 129, 0.55);
+}
+
+/* --------------------------------------------------------------------------
+   Container
+   -------------------------------------------------------------------------- */
+.kawaii-character {
+  position: relative;
+  width: var(--kawaii-size);
+  height: var(--kawaii-size);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+  contain: layout style;
+}
+
+/* Ambient drop glow behind gooey filter */
+.kawaii-character::before {
+  content: '';
+  position: absolute;
+  width: 65%;
+  height: 65%;
+  border-radius: 50%;
+  background: var(--blob-glow);
+  filter: blur(24px);
+  z-index: 0;
+  pointer-events: none;
+  transition: background 0.5s ease, transform 0.5s ease, border-radius 0.4s ease;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 1: Fluid Gooey Background
+   -------------------------------------------------------------------------- */
+.goo-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  filter: url('#fluid-goo');
+  -webkit-filter: url('#fluid-goo');
+  pointer-events: none;
+  z-index: 1;
+}
+
+.blob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  will-change: transform;
+}
+
+/* --------------------------------------------------------------------------
+   Geometrical Shape Presets
+   -------------------------------------------------------------------------- */
+
+/* === 1. CIRCLE (Default / Mochi) === */
+.kawaii-character[data-shape="circle"]::before,
+.kawaii-character:not([data-shape]):not([data-persona="byte"]):not([data-persona="nova"]):not([data-persona="sage"]):not([data-persona="echo"])::before {
+  border-radius: 50%;
+}
+
+.kawaii-character[data-shape="circle"] .blob,
+.kawaii-character:not([data-shape]):not([data-persona="byte"]):not([data-persona="nova"]):not([data-persona="sage"]):not([data-persona="echo"]) .blob {
+  border-radius: 50%;
+}
+
+.kawaii-character[data-shape="circle"] .blob-1,
+.kawaii-character:not([data-shape]):not([data-persona="byte"]):not([data-persona="nova"]):not([data-persona="sage"]):not([data-persona="echo"]) .blob-1 {
+  width: 58%; height: 58%;
+  background: var(--blob-color-1);
+  animation: float-1 4.5s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="circle"] .blob-2,
+.kawaii-character:not([data-shape]):not([data-persona="byte"]):not([data-persona="nova"]):not([data-persona="sage"]):not([data-persona="echo"]) .blob-2 {
+  width: 48%; height: 48%;
+  background: var(--blob-color-2);
+  animation: float-2 5.5s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="circle"] .blob-3,
+.kawaii-character:not([data-shape]):not([data-persona="byte"]):not([data-persona="nova"]):not([data-persona="sage"]):not([data-persona="echo"]) .blob-3 {
+  width: 52%; height: 52%;
+  background: var(--blob-color-3);
+  animation: float-3 6.5s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="circle"] .blob-4,
+.kawaii-character:not([data-shape]):not([data-persona="byte"]):not([data-persona="nova"]):not([data-persona="sage"]):not([data-persona="echo"]) .blob-4 {
+  width: 36%; height: 36%;
+  background: var(--blob-color-1);
+  animation: float-circle-orbit 5s infinite ease-in-out;
+}
+
+/* === 2. SQUARE / SQUIRCLE (Byte - Coder) === */
+.kawaii-character[data-shape="square"]::before,
+.kawaii-character[data-persona="byte"]:not([data-shape])::before {
+  width: 68%; height: 68%;
+  border-radius: 26%;
+}
+
+.kawaii-character[data-shape="square"] .blob,
+.kawaii-character[data-persona="byte"]:not([data-shape]) .blob {
+  border-radius: 24% 28% 22% 26%;
+}
+
+.kawaii-character[data-shape="square"] .blob-1,
+.kawaii-character[data-persona="byte"]:not([data-shape]) .blob-1 {
+  width: 64%; height: 64%;
+  background: var(--blob-color-1);
+  animation: square-jiggle-1 4.5s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="square"] .blob-2,
+.kawaii-character[data-persona="byte"]:not([data-shape]) .blob-2 {
+  width: 60%; height: 52%;
+  border-radius: 28% 24% 26% 22%;
+  background: var(--blob-color-2);
+  animation: square-squash-h 5s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="square"] .blob-3,
+.kawaii-character[data-persona="byte"]:not([data-shape]) .blob-3 {
+  width: 52%; height: 60%;
+  border-radius: 22% 26% 24% 28%;
+  background: var(--blob-color-3);
+  animation: square-squash-v 5.5s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="square"] .blob-4,
+.kawaii-character[data-persona="byte"]:not([data-shape]) .blob-4 {
+  width: 44%; height: 44%;
+  border-radius: 20%;
+  background: var(--blob-color-1);
+  animation: square-corner-bounce 4s infinite ease-in-out;
+}
+
+/* === 3. TRIANGLE / DELTA (Sage - Researcher) === */
+.kawaii-character[data-shape="triangle"]::before,
+.kawaii-character[data-persona="sage"]:not([data-shape])::before {
+  width: 76%; height: 72%;
+  border-radius: 24%;
+  clip-path: polygon(50% 6%, 4% 94%, 96% 94%);
+}
+
+.kawaii-character[data-shape="triangle"] .kawaii-face,
+.kawaii-character[data-persona="sage"]:not([data-shape]) .kawaii-face {
+  top: 56%; /* Positioned directly inside the triangle centroid */
+  width: 34%;
+  height: 22%;
+}
+
+.kawaii-character[data-shape="triangle"] .blob,
+.kawaii-character[data-persona="sage"]:not([data-shape]) .blob {
+  border-radius: 50%;
+}
+
+.kawaii-character[data-shape="triangle"] .blob-1,
+.kawaii-character[data-persona="sage"]:not([data-shape]) .blob-1 {
+  /* Top apex */
+  top: 30%; left: 50%;
+  width: 48%; height: 48%;
+  background: var(--blob-color-1);
+  animation: triangle-peak 4.5s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="triangle"] .blob-2,
+.kawaii-character[data-persona="sage"]:not([data-shape]) .blob-2 {
+  /* Bottom-left base */
+  top: 65%; left: 32%;
+  width: 52%; height: 52%;
+  background: var(--blob-color-2);
+  animation: triangle-base-l 5s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="triangle"] .blob-3,
+.kawaii-character[data-persona="sage"]:not([data-shape]) .blob-3 {
+  /* Bottom-right base */
+  top: 65%; left: 68%;
+  width: 52%; height: 52%;
+  background: var(--blob-color-3);
+  animation: triangle-base-r 5.5s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="triangle"] .blob-4,
+.kawaii-character[data-persona="sage"]:not([data-shape]) .blob-4 {
+  /* Central fill / belly */
+  top: 52%; left: 50%;
+  width: 58%; height: 52%;
+  border-radius: 42% 42% 35% 35%;
+  background: var(--blob-color-1);
+  animation: triangle-center-breathe 4s infinite ease-in-out;
+}
+
+/* === 4. DIAMOND / STAR (Nova - Planner) === */
+.kawaii-character[data-shape="diamond"]::before,
+.kawaii-character[data-persona="nova"]:not([data-shape])::before {
+  width: 62%; height: 62%;
+  border-radius: 20%;
+  transform: rotate(45deg);
+}
+
+.kawaii-character[data-shape="diamond"] .blob,
+.kawaii-character[data-persona="nova"]:not([data-shape]) .blob {
+  border-radius: 22% 32% 22% 32%;
+}
+
+.kawaii-character[data-shape="diamond"] .blob-1,
+.kawaii-character[data-persona="nova"]:not([data-shape]) .blob-1 {
+  width: 58%; height: 58%;
+  background: var(--blob-color-1);
+  animation: diamond-spin-1 6s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="diamond"] .blob-2,
+.kawaii-character[data-persona="nova"]:not([data-shape]) .blob-2 {
+  /* Vertical tip stretch */
+  width: 42%; height: 68%;
+  border-radius: 35%;
+  background: var(--blob-color-2);
+  animation: diamond-vert-pulse 4.5s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="diamond"] .blob-3,
+.kawaii-character[data-persona="nova"]:not([data-shape]) .blob-3 {
+  /* Horizontal tip stretch */
+  width: 68%; height: 42%;
+  border-radius: 35%;
+  background: var(--blob-color-3);
+  animation: diamond-horiz-pulse 5s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="diamond"] .blob-4,
+.kawaii-character[data-persona="nova"]:not([data-shape]) .blob-4 {
+  width: 44%; height: 44%;
+  border-radius: 20%;
+  background: var(--blob-color-1);
+  animation: diamond-core 3.8s infinite ease-in-out;
+}
+
+/* === 5. HEXAGON / SHIELD (Echo - Reviewer) === */
+.kawaii-character[data-shape="hexagon"]::before,
+.kawaii-character[data-persona="echo"]:not([data-shape])::before {
+  width: 68%; height: 68%;
+  border-radius: 24%;
+  clip-path: polygon(50% 4%, 93% 25%, 93% 75%, 50% 96%, 7% 75%, 7% 25%);
+}
+
+.kawaii-character[data-shape="hexagon"] .blob,
+.kawaii-character[data-persona="echo"]:not([data-shape]) .blob {
+  border-radius: 24%;
+}
+
+.kawaii-character[data-shape="hexagon"] .blob-1,
+.kawaii-character[data-persona="echo"]:not([data-shape]) .blob-1 {
+  width: 66%; height: 46%;
+  background: var(--blob-color-1);
+  animation: hex-facet-0 5s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="hexagon"] .blob-2,
+.kawaii-character[data-persona="echo"]:not([data-shape]) .blob-2 {
+  width: 66%; height: 46%;
+  background: var(--blob-color-2);
+  animation: hex-facet-60 5.5s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="hexagon"] .blob-3,
+.kawaii-character[data-persona="echo"]:not([data-shape]) .blob-3 {
+  width: 66%; height: 46%;
+  background: var(--blob-color-3);
+  animation: hex-facet-120 6s infinite ease-in-out;
+}
+
+.kawaii-character[data-shape="hexagon"] .blob-4,
+.kawaii-character[data-persona="echo"]:not([data-shape]) .blob-4 {
+  width: 48%; height: 48%;
+  border-radius: 50%;
+  background: var(--blob-color-1);
+  animation: hex-core 4.5s infinite ease-in-out;
+}
+
+/* --------------------------------------------------------------------------
+   Layer 2: Foreground Kawaii Face (Sharp, Un-filtered)
+   -------------------------------------------------------------------------- */
+.kawaii-face {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 10; /* Stays crisp above the gooey canvas */
+  width: 38%;
+  height: 24%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+  animation: face-bounce 4.5s infinite ease-in-out;
+  transform: translate(-50%, -50%) translate(var(--kawaii-look-x), var(--kawaii-look-y));
+  transition: transform 0.12s cubic-bezier(0.2, 0.9, 0.4, 1), top 0.3s ease;
+}
+
+/* Eyes */
+.eyes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 72%;
+  position: relative;
+}
+
+.eye {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  background: var(--kawaii-ink);
+  border-radius: 50%;
+  animation: blink 4s infinite;
+  transform-origin: center center;
+  transition: transform 0.15s ease, height 0.15s ease, border-radius 0.15s ease;
+}
+
+/* Cute specular highlight / shine in eye */
+.eye::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  width: 4px;
+  height: 4px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.12s ease;
+  transform: translate(calc(var(--kawaii-look-x) * 0.4), calc(var(--kawaii-look-y) * 0.4));
+}
+
+/* Cheeks / Blush */
+.blush {
+  position: absolute;
+  top: 50%;
+  width: 105%;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.cheek {
+  width: 13px;
+  height: 8px;
+  background: var(--blush-color);
+  border-radius: 50%;
+  filter: blur(1px);
+  opacity: 0.85;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Mouth */
+.mouth {
+  position: relative;
+  width: 14px;
+  height: 7px;
+  border: 3px solid var(--kawaii-ink);
+  border-top: 0;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  background: transparent;
+  transform-origin: top center;
+  transform: scaleY(var(--kawaii-mouth-scale));
+  transition: transform 0.08s ease-out, border-radius 0.2s ease, background-color 0.2s ease, width 0.2s ease;
+}
+
+/* Floating Status Indicator Badge */
+.kawaii-badge {
+  position: absolute;
+  top: 8%;
+  right: 10%;
+  z-index: 12;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--kawaii-ink);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(4px) scale(0.9);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+
+.kawaii-character[data-show-badge="true"] .kawaii-badge {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* --------------------------------------------------------------------------
+   Agent States & Expressions
+   -------------------------------------------------------------------------- */
+
+/* --- 1. IDLE (Default): Calm floating & gentle blinking --- */
+.kawaii-character[data-state="idle"] .eye {
+  animation: blink 4.5s infinite;
+}
+
+/* --- 2. THINKING: Swirling blobs, eyes looking up/darting, mouth pondering --- */
+.kawaii-character[data-state="thinking"] .blob-1 {
+  animation-duration: 2.2s;
+}
+.kawaii-character[data-state="thinking"] .blob-2 {
+  animation-duration: 2.8s;
+}
+.kawaii-character[data-state="thinking"] .blob-3 {
+  animation-duration: 2.5s;
+}
+.kawaii-character[data-state="thinking"] .eye {
+  animation: eye-think 3s infinite ease-in-out;
+}
+.kawaii-character[data-state="thinking"] .mouth {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border-top: 3px solid var(--kawaii-ink);
+  transform: translateY(-2px);
+}
+.kawaii-character[data-state="thinking"] .kawaii-face {
+  animation: face-think 3s infinite ease-in-out;
+}
+
+/* --- 3. SPEAKING / TALKING: Lively mouth movement & happy bounce --- */
+.kawaii-character[data-state="speaking"] .kawaii-face {
+  animation: face-bounce 1.5s infinite ease-in-out;
+}
+.kawaii-character[data-state="speaking"] .mouth {
+  width: 16px;
+  height: 12px;
+  background: #ff6b81;
+  border-radius: 2px 2px 14px 14px;
+  border-top: 2px solid var(--kawaii-ink);
+  animation: talk-cycle 0.35s infinite alternate ease-in-out;
+}
+.kawaii-character[data-state="speaking"] .cheek {
+  transform: scale(1.25);
+  opacity: 1;
+}
+
+/* --- 4. LISTENING: Attentive, widened eyes, gentle rhythmic breathing --- */
+.kawaii-character[data-state="listening"] .kawaii-character::before {
+  transform: scale(1.15);
+}
+.kawaii-character[data-state="listening"] .eye {
+  transform: scale(1.2);
+  animation: none;
+}
+.kawaii-character[data-state="listening"] .mouth {
+  width: 10px;
+  height: 5px;
+}
+
+/* --- 5. SUCCESS: Joyful celebration (^ _ ^), bouncing cheeks --- */
+.kawaii-character[data-state="success"] .kawaii-face {
+  animation: face-celebrate 0.8s infinite alternate ease-in-out;
+}
+.kawaii-character[data-state="success"] .eye {
+  background: transparent;
+  border: 3px solid var(--kawaii-ink);
+  border-bottom: 0;
+  border-left: 0;
+  border-right: 0;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+  height: 8px;
+  width: 14px;
+  animation: none;
+}
+.kawaii-character[data-state="success"] .eye::after {
+  display: none;
+}
+.kawaii-character[data-state="success"] .mouth {
+  width: 18px;
+  height: 11px;
+  background: #ff6b81;
+  border-radius: 0 0 16px 16px;
+  border-top: 0;
+}
+.kawaii-character[data-state="success"] .cheek {
+  transform: scale(1.3) translateY(-2px);
+  opacity: 1;
+}
+
+/* --- 6. ERROR / CONFUSED: Wobble, wobbly mouth, distressed eyes (> <) --- */
+.kawaii-character[data-state="error"] .kawaii-character,
+.kawaii-character[data-state="error"] .goo-container {
+  animation: character-shiver 0.3s infinite ease-in-out;
+}
+.kawaii-character[data-state="error"] .eye {
+  transform: scale(0.85);
+  animation: none;
+}
+.kawaii-character[data-state="error"] .mouth {
+  width: 14px;
+  height: 5px;
+  border: 3px solid var(--kawaii-ink);
+  border-bottom: 0;
+  border-top: 3px solid var(--kawaii-ink);
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  transform: translateY(3px);
+}
+.kawaii-character[data-state="error"] .cheek {
+  opacity: 0.3;
+}
+
+/* --------------------------------------------------------------------------
+   Keyframes: Facial Expressions
+   -------------------------------------------------------------------------- */
+@keyframes blink {
+  0%, 88%, 94%, 100% { transform: scaleY(1); }
+  91% { transform: scaleY(0.08); }
+}
+
+@keyframes face-bounce {
+  0%, 100% {
+    transform: translate(-50%, -50%) translate(var(--kawaii-look-x), var(--kawaii-look-y)) translateY(0px) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) translate(var(--kawaii-look-x), var(--kawaii-look-y)) translateY(-8px) scale(1.03);
+  }
+}
+
+@keyframes face-think {
+  0%, 100% {
+    transform: translate(-50%, -50%) translate(var(--kawaii-look-x), var(--kawaii-look-y)) translateY(0px) rotate(0deg);
+  }
+  30% {
+    transform: translate(-50%, -50%) translate(var(--kawaii-look-x), var(--kawaii-look-y)) translateY(-6px) rotate(-4deg);
+  }
+  70% {
+    transform: translate(-50%, -50%) translate(var(--kawaii-look-x), var(--kawaii-look-y)) translateY(-4px) rotate(4deg);
+  }
+}
+
+@keyframes face-celebrate {
+  0% {
+    transform: translate(-50%, -50%) translate(var(--kawaii-look-x), var(--kawaii-look-y)) translateY(0px) scale(1);
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(var(--kawaii-look-x), var(--kawaii-look-y)) translateY(-14px) scale(1.08);
+  }
+}
+
+@keyframes eye-think {
+  0%, 100% { transform: translateY(0); }
+  35%, 65% { transform: translateY(-4px) translateX(2px); }
+}
+
+@keyframes talk-cycle {
+  0% { transform: scaleY(0.6) scaleX(0.9); }
+  100% { transform: scaleY(1.4) scaleX(1.1); }
+}
+
+@keyframes character-shiver {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+/* --------------------------------------------------------------------------
+   Keyframes: Shape Animations
+   -------------------------------------------------------------------------- */
+
+/* Circle Keyframes */
+@keyframes float-1 {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-44%, -56%) scale(1.1); }
+}
+@keyframes float-2 {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) translate(-22px, 16px) scale(0.95); }
+}
+@keyframes float-3 {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) translate(18px, -18px) scale(1.05); }
+}
+@keyframes float-circle-orbit {
+  0%, 100% { transform: translate(-50%, -50%) translate(-12px, -12px) scale(0.9); }
+  50% { transform: translate(-50%, -50%) translate(14px, 14px) scale(1.1); }
+}
+
+/* Square Keyframes */
+@keyframes square-jiggle-1 {
+  0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  25% { transform: translate(-50%, -50%) scale(1.04, 0.96) rotate(-2deg); }
+  75% { transform: translate(-50%, -50%) scale(0.96, 1.04) rotate(2deg); }
+}
+@keyframes square-squash-h {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.08, 0.92) translate(0, 3px); }
+}
+@keyframes square-squash-v {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(0.92, 1.08) translate(3px, 0); }
+}
+@keyframes square-corner-bounce {
+  0%, 100% { transform: translate(-50%, -50%) translate(10px, -10px) scale(0.9); }
+  50% { transform: translate(-50%, -50%) translate(-10px, 10px) scale(1.06); }
+}
+
+/* Triangle Keyframes */
+@keyframes triangle-peak {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0) scale(1); }
+  50% { transform: translate(-50%, -50%) translateY(-6px) scale(1.08); }
+}
+@keyframes triangle-base-l {
+  0%, 100% { transform: translate(-50%, -50%) translate(0, 0) scale(1); }
+  50% { transform: translate(-50%, -50%) translate(-5px, 3px) scale(1.05); }
+}
+@keyframes triangle-base-r {
+  0%, 100% { transform: translate(-50%, -50%) translate(0, 0) scale(1); }
+  50% { transform: translate(-50%, -50%) translate(5px, 3px) scale(1.05); }
+}
+@keyframes triangle-center-breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.06, 0.96); }
+}
+
+/* Diamond Keyframes */
+@keyframes diamond-spin-1 {
+  0%, 100% { transform: translate(-50%, -50%) rotate(45deg) scale(1); }
+  50% { transform: translate(-50%, -50%) rotate(45deg) scale(1.07); }
+}
+@keyframes diamond-vert-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(0.9, 1.12); }
+}
+@keyframes diamond-horiz-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.12, 0.9); }
+}
+@keyframes diamond-core {
+  0%, 100% { transform: translate(-50%, -50%) rotate(45deg) scale(0.95); }
+  50% { transform: translate(-50%, -50%) rotate(45deg) scale(1.1); }
+}
+
+/* Hexagon Keyframes */
+@keyframes hex-facet-0 {
+  0%, 100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+  50% { transform: translate(-50%, -50%) rotate(2deg) scale(1.05, 0.95); }
+}
+@keyframes hex-facet-60 {
+  0%, 100% { transform: translate(-50%, -50%) rotate(60deg) scale(1); }
+  50% { transform: translate(-50%, -50%) rotate(58deg) scale(0.95, 1.05); }
+}
+@keyframes hex-facet-120 {
+  0%, 100% { transform: translate(-50%, -50%) rotate(120deg) scale(1); }
+  50% { transform: translate(-50%, -50%) rotate(122deg) scale(1.04, 0.96); }
+}
+@keyframes hex-core {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.08); }
+}
