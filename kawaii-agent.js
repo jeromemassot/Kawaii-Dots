@@ -3,7 +3,7 @@
  * 
  * Embeds morphing fluid dots with distinct geometrical shapes (Circle, Square, Triangle, Diamond, Hexagon)
  * and a crisp foreground kawaii face.
- * Supports agent states, persona theming, cursor tracking, and real-time audio lip-sync.
+ * Supports agent states, persona theming, cursor tracking, and real-time audio lip-sync with AUDIBLE SOUND.
  */
 
 const SVG_FILTER_ID = 'fluid-goo';
@@ -15,6 +15,84 @@ const PERSONA_SHAPES = {
   nova: 'diamond',
   echo: 'hexagon'
 };
+
+const PERSONA_PHRASES = {
+  mochi: "Hello! I am Mochi, your assistant. I am ready to help!",
+  byte: "Hello world! Byte here, ready to generate and test code!",
+  sage: "Greetings! I am Sage. Querying documents and retrieving insights!",
+  nova: "Strategy ready! I am Nova, coordinating our architecture.",
+  echo: "Quality audit passed! Echo checking all test suites."
+};
+
+const PERSONA_VOICE_PROFILES = {
+  mochi: { baseFreq: 580, range: [540, 620, 700, 780], type: 'triangle', speechPitch: 1.45 },
+  byte:  { baseFreq: 440, range: [400, 480, 560, 640], type: 'sawtooth', speechPitch: 1.35 },
+  sage:  { baseFreq: 340, range: [300, 360, 420, 480], type: 'triangle', speechPitch: 1.25 },
+  nova:  { baseFreq: 640, range: [600, 680, 760, 840], type: 'sine',     speechPitch: 1.50 },
+  echo:  { baseFreq: 480, range: [440, 520, 600, 680], type: 'triangle', speechPitch: 1.30 }
+};
+
+/**
+ * Web Audio Sound Synthesizer for Kawaii Agents
+ */
+class KawaiiAudio {
+  static getContext() {
+    if (!this._ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        this._ctx = new AudioCtx();
+      }
+    }
+    if (this._ctx && this._ctx.state === 'suspended') {
+      this._ctx.resume().catch(() => {});
+    }
+    return this._ctx;
+  }
+
+  /**
+   * Plays a sweet, expressive vocal syllable tone
+   */
+  static playChirp(freq = 560, duration = 0.08, type = 'triangle', volume = 0.16) {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      // Expressive upward pitch inflection
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.14, ctx.currentTime + duration * 0.7);
+
+      gain.gain.setValueAtTime(volume, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + duration);
+    } catch (e) {
+      console.warn('Audio playback error:', e);
+    }
+  }
+
+  /**
+   * Plays a sparkling ascending celebration fanfare (C5, E5, G5, C6)
+   */
+  static playFanfare() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+    notes.forEach((freq, idx) => {
+      setTimeout(() => {
+        this.playChirp(freq, 0.24, 'sine', 0.18);
+      }, idx * 80);
+    });
+  }
+}
 
 /**
  * Ensures the SVG gooey blend filter is present in the DOM.
@@ -112,7 +190,6 @@ class KawaiiAgent extends HTMLElement {
     const container = this.querySelector('.kawaii-character');
     if (container) {
       container.setAttribute('data-persona', this._persona);
-      // If no explicit shape override was set, update the active shape to match the persona
       if (!this._shape) {
         container.setAttribute('data-shape', this.effectiveShape);
       }
@@ -195,7 +272,6 @@ class KawaiiAgent extends HTMLElement {
    */
   setAudioLevel(volume) {
     const clamped = Math.max(0, Math.min(1, volume));
-    // Scale mouth between 0.8 (closed) and 2.6 (wide open)
     const scale = 0.8 + clamped * 1.8;
     this.style.setProperty('--kawaii-mouth-scale', scale.toFixed(2));
   }
@@ -214,7 +290,7 @@ class KawaiiAgent extends HTMLElement {
     const deltaX = clientX - centerX;
     const deltaY = clientY - centerY;
     const distance = Math.hypot(deltaX, deltaY);
-    const maxRadius = 7; // Max pixels to offset the face/eyes
+    const maxRadius = 7;
 
     const factor = Math.min(maxRadius, distance / 25);
     const angle = Math.atan2(deltaY, deltaX);
@@ -267,7 +343,6 @@ class KawaiiAgent extends HTMLElement {
         this._analyser.getByteFrequencyData(dataArray);
 
         let sum = 0;
-        // Sample voice frequency range
         const voiceBins = Math.min(bufferLength, 32);
         for (let i = 2; i < voiceBins; i++) {
           sum += dataArray[i];
@@ -316,29 +391,147 @@ class KawaiiAgent extends HTMLElement {
   }
 
   /**
-   * Simulates speaking state for a given duration or text length.
+   * Speaks audible sound with synchronized kawaii mouth lip-sync.
+   * Uses Web Speech API (with cute pitch) + Web Audio procedural vocal syllable chirps.
+   * 
+   * @param {string} [text] - Text to speak. If omitted, uses persona signature phrase.
+   * @param {Function} [onComplete] - Callback executed when speech finishes.
    */
-  say(durationMs = 2500, onComplete) {
+  speak(text, onComplete) {
+    const utteranceText = text || PERSONA_PHRASES[this._persona] || "Hello! Ready to assist you!";
+    const voiceProfile = PERSONA_VOICE_PROFILES[this._persona] || PERSONA_VOICE_PROFILES.mochi;
+
     const prevState = this.state;
     this.state = 'speaking';
 
+    KawaiiAudio.getContext();
+
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      this.setAudioLevel(0);
+      this.state = prevState === 'speaking' ? 'idle' : prevState;
+      if (typeof onComplete === 'function') onComplete();
+    };
+
+    let mouthInterval = null;
+
+    // Check for Web Speech API
+    if ('speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(utteranceText);
+        utterance.pitch = voiceProfile.speechPitch;
+        utterance.rate = 1.1;
+
+        // Try to pick natural high/female voice for kawaii sound
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          const match = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Zira') || v.name.includes('Samantha') || v.name.includes('Google US English')));
+          if (match) utterance.voice = match;
+        }
+
+        utterance.onboundary = () => {
+          // Play synchronized vocal chime on word boundary
+          const f = voiceProfile.range[Math.floor(Math.random() * voiceProfile.range.length)];
+          KawaiiAudio.playChirp(f, 0.08, voiceProfile.type, 0.14);
+          this.setAudioLevel(0.65 + Math.random() * 0.35);
+          setTimeout(() => this.setAudioLevel(0.2), 110);
+        };
+
+        utterance.onstart = () => {
+          // Continuous lip-sync animation
+          mouthInterval = setInterval(() => {
+            const f = voiceProfile.range[Math.floor(Math.random() * voiceProfile.range.length)];
+            KawaiiAudio.playChirp(f, 0.06, voiceProfile.type, 0.08);
+            this.setAudioLevel(0.3 + Math.random() * 0.7);
+          }, 140);
+        };
+
+        utterance.onend = () => {
+          clearInterval(mouthInterval);
+          finish();
+        };
+
+        utterance.onerror = () => {
+          clearInterval(mouthInterval);
+          this._proceduralBabble(2600, voiceProfile, finish);
+        };
+
+        window.speechSynthesis.speak(utterance);
+
+        // Fallback timeout in case speech synthesis stalls
+        setTimeout(() => {
+          if (!window.speechSynthesis.speaking && !finished) {
+            clearInterval(mouthInterval);
+            this._proceduralBabble(2600, voiceProfile, finish);
+          }
+        }, 400);
+
+        return;
+      } catch (err) {
+        console.warn('SpeechSynthesis unavailable, using procedural synth:', err);
+      }
+    }
+
+    // Procedural voice fallback
+    this._proceduralBabble(2600, voiceProfile, finish);
+  }
+
+  /**
+   * Procedural vocal babble (Animal Crossing / Tamagotchi melodic syllables)
+   */
+  _proceduralBabble(durationMs, profile, onEnd) {
     const startTime = performance.now();
-    const animateMouth = (now) => {
+    let lastChirpTime = 0;
+
+    const loop = (now) => {
       const elapsed = now - startTime;
       if (elapsed >= durationMs) {
-        this.setAudioLevel(0);
-        this.state = prevState === 'speaking' ? 'idle' : prevState;
-        if (typeof onComplete === 'function') onComplete();
+        if (typeof onEnd === 'function') onEnd();
         return;
       }
 
-      // Procedural natural speech syllable simulation
+      // Play vocal chirp every ~130ms
+      if (now - lastChirpTime > 130 + Math.random() * 50) {
+        const f = profile.range[Math.floor(Math.random() * profile.range.length)];
+        KawaiiAudio.playChirp(f, 0.07, profile.type, 0.16);
+        lastChirpTime = now;
+      }
+
       const wave = (Math.sin(elapsed / 110) + Math.sin(elapsed / 65) + 1.8) / 3.8;
       this.setAudioLevel(wave);
-      requestAnimationFrame(animateMouth);
+      requestAnimationFrame(loop);
     };
 
-    requestAnimationFrame(animateMouth);
+    requestAnimationFrame(loop);
+  }
+
+  /**
+   * Legacy say method; now produces REAL audible voice!
+   */
+  say(durationOrText = 2600, onComplete) {
+    if (typeof durationOrText === 'string') {
+      this.speak(durationOrText, onComplete);
+    } else {
+      this.speak(null, onComplete);
+    }
+  }
+
+  /**
+   * Plays victory celebration fanfare and switches state to success
+   */
+  celebrate(durationMs = 3000, onComplete) {
+    this.state = 'success';
+    this.badge = 'TASK COMPLETE! 🌟';
+    KawaiiAudio.playFanfare();
+
+    setTimeout(() => {
+      this.state = 'idle';
+      this.badge = 'READY';
+      if (typeof onComplete === 'function') onComplete();
+    }, durationMs);
   }
 }
 
@@ -347,5 +540,6 @@ if (!customElements.get('kawaii-agent')) {
   customElements.define('kawaii-agent', KawaiiAgent);
 }
 
-// Global helper for framework-free embedding
+// Global helpers for framework-free embedding
 window.KawaiiAgent = KawaiiAgent;
+window.KawaiiAudio = KawaiiAudio;

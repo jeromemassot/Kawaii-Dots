@@ -696,28 +696,24 @@ export function AgentAvatar({
         }
       });
 
-      // Simulate Speech Button
+      // Simulate Speech Button (Real Audible Voice + Lip-sync)
       const speechBtn = document.getElementById('simulate-speech-btn');
       speechBtn.addEventListener('click', () => {
-        statusIndicator.textContent = 'Agent Speaking • Lip-sync active...';
-        heroAgent.badge = 'SPEAKING';
-        heroAgent.say(2800, () => {
+        statusIndicator.textContent = 'Agent Speaking • Voice Audio Active!';
+        heroAgent.badge = 'SPEAKING 🔊';
+        heroAgent.speak(null, () => {
           heroAgent.badge = 'READY';
           updateStatus();
         });
       });
 
-      // Celebrate Success Button
+      // Celebrate Success Button (Plays fanfare chime)
       const successBtn = document.getElementById('trigger-success-btn');
       successBtn.addEventListener('click', () => {
-        heroAgent.state = 'success';
-        heroAgent.badge = 'TASK COMPLETE! 🌟';
-        statusIndicator.textContent = 'Agent Celebrated • Task Complete';
-        setTimeout(() => {
-          heroAgent.state = 'idle';
-          heroAgent.badge = 'READY';
+        statusIndicator.textContent = 'Agent Celebrated • Task Complete! 🎉';
+        heroAgent.celebrate(3000, () => {
           updateStatus();
-        }, 3000);
+        });
       });
 
       // Code Tabs
