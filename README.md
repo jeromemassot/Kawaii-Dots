@@ -14,6 +14,8 @@
 
 Fluid, morphing gooey pastel dots with **distinct geometrical silhouettes** (Circle, Square, Triangle, Diamond, Hexagon) and crisp vector kawaii faces, built natively for web applications to impersonate autonomous AI agents in real-time.
 
+![Kawaii Agent Studio](front-page-1.png)
+
 ---
 
 ## 📐 5 Geometrical Agent Archetypes
