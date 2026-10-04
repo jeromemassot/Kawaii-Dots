@@ -17,14 +17,66 @@
       --accent-hover: #ff5277;
     }
 
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
     @media (prefers-color-scheme: dark) {
-      :root {
+      :root:not([data-theme="light"]) {
         --bg: #0f172a;
         --card-bg: #1e293b;
         --card-border: #334155;
         --text: #f1f5f9;
         --text-muted: #94a3b8;
       }
+    }
+
+    body, .card, .btn, .stage-card, .team-member-card, .toggle-row, .theme-toggle {
+      transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      width: 100%;
+    }
+
+    .header-tag {
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+    }
+
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
     }
 
     * {
@@ -358,6 +410,13 @@
 
   <div class="container">
     <header>
+      <div class="header-top">
+        <span class="header-tag">Kawaii Impersonator</span>
+        <button id="theme-toggle-btn" class="theme-toggle" aria-label="Toggle dark and light mode">
+          <span class="theme-icon">🌙</span>
+          <span class="theme-text">Dark Mode</span>
+        </button>
+      </div>
       <h1>Kawaii Agent Studio</h1>
       <p>Fluid gooey morphing avatars with distinct geometrical silhouettes (Circle, Square, Triangle, Diamond, Hexagon) and crisp vector kawaii faces.</p>
     </header>
@@ -608,6 +667,34 @@ export function AgentAvatar({
     document.addEventListener('DOMContentLoaded', () => {
       const heroAgent = document.getElementById('hero-agent');
       const statusIndicator = document.getElementById('active-state-indicator');
+
+      // Theme Toggle Logic
+      const themeToggleBtn = document.getElementById('theme-toggle-btn');
+      const themeIcon = themeToggleBtn.querySelector('.theme-icon');
+      const themeText = themeToggleBtn.querySelector('.theme-text');
+
+      function setTheme(theme) {
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          themeIcon.textContent = '☀️';
+          themeText.textContent = 'Light Mode';
+          localStorage.setItem('kawaii-theme', 'dark');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          themeIcon.textContent = '🌙';
+          themeText.textContent = 'Dark Mode';
+          localStorage.setItem('kawaii-theme', 'light');
+        }
+      }
+
+      const savedTheme = localStorage.getItem('kawaii-theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+
+      themeToggleBtn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme') || 'light';
+        setTheme(current === 'dark' ? 'light' : 'dark');
+      });
 
       const PERSONA_DEFAULTS = {
         mochi: 'circle',
