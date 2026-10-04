@@ -1,5 +1,17 @@
 # 🌸 Kawaii Agent Avatars for Agentic Architectures
 
+<p align="left">
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5" />
+  <img src="https://img.shields.io/badge/CSS3_Animations-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
+  <img src="https://img.shields.io/badge/SVG_Filters-FFB13B?style=for-the-badge&logo=svg&logoColor=white" alt="SVG Filters" />
+  <img src="https://img.shields.io/badge/JavaScript_ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
+  <img src="https://img.shields.io/badge/Web_Components-29B6F6?style=for-the-badge&logo=webcomponents&logoColor=white" alt="Web Components" />
+  <img src="https://img.shields.io/badge/Web_Audio_API-9B51E0?style=for-the-badge&logo=audioboom&logoColor=white" alt="Web Audio API" />
+  <img src="https://img.shields.io/badge/Web_Speech_API-FF6584?style=for-the-badge&logo=googleassistant&logoColor=white" alt="Web Speech API" />
+  <img src="https://img.shields.io/badge/Dependencies-Zero-2ea44f?style=for-the-badge&logo=speedtest&logoColor=white" alt="Zero Dependencies" />
+  <img src="https://img.shields.io/badge/Frameworks-React_%7C_Vue_%7C_Vanilla-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="Framework Support" />
+</p>
+
 Fluid, morphing gooey pastel dots with **distinct geometrical silhouettes** (Circle, Square, Triangle, Diamond, Hexagon) and crisp vector kawaii faces, built natively for web applications to impersonate autonomous AI agents in real-time.
 
 ---
