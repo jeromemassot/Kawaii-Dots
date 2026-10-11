@@ -443,6 +443,16 @@
       <!-- Live Controls -->
       <div class="card controls-card">
         
+        <!-- Coat Texture & Fluffiness Selector -->
+        <div class="control-group">
+          <span class="control-label">Fluffiness & Coat Style</span>
+          <div class="btn-row" id="fluff-btn-group">
+            <button class="btn active" data-fluff="fluffy">☁️ Fluffy Pom-Pom</button>
+            <button class="btn" data-fluff="shaggy">🦁 Shaggy Long Fur</button>
+            <button class="btn" data-fluff="smooth">💧 Smooth Mochi</button>
+          </div>
+        </div>
+
         <!-- Shape Selector -->
         <div class="control-group">
           <span class="control-label">Geometrical Shape</span>
@@ -707,9 +717,21 @@ export function AgentAvatar({
       function updateStatus() {
         const shape = heroAgent.shape;
         const state = heroAgent.state;
-        const persona = heroAgent.persona;
-        statusIndicator.textContent = `Agent Active • ${shape.toUpperCase()} • ${state.toUpperCase()}`;
+        const fluff = heroAgent.fluff || 'fluffy';
+        statusIndicator.textContent = `Agent Active • ${fluff.toUpperCase()} • ${shape.toUpperCase()} • ${state.toUpperCase()}`;
       }
+
+      // Fluffiness Switcher
+      const fluffBtns = document.querySelectorAll('#fluff-btn-group .btn');
+      fluffBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          fluffBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const fluff = btn.getAttribute('data-fluff');
+          heroAgent.fluff = fluff;
+          updateStatus();
+        });
+      });
 
       // Shape Switcher
       const shapeBtns = document.querySelectorAll('#shape-btn-group .btn');

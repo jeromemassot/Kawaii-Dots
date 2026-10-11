@@ -95,7 +95,7 @@ class KawaiiAudio {
 }
 
 /**
- * Ensures the SVG gooey blend filter is present in the DOM.
+ * Ensures the SVG gooey and fluffy blend filters are present in the DOM.
  */
 function ensureGooFilter() {
   if (document.getElementById(SVG_FILTER_ID)) return;
@@ -111,9 +111,28 @@ function ensureGooFilter() {
 
   svg.innerHTML = `
     <defs>
+      <!-- Smooth Classic Gooey Filter -->
       <filter id="${SVG_FILTER_ID}" color-interpolation-filters="sRGB">
         <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
         <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+      </filter>
+
+      <!-- Fluffy Fur Filter (Fractal Noise Edge Displacement) -->
+      <filter id="fluffy-goo" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.085 0.085" numOctaves="3" result="furNoise" seed="8" />
+        <feDisplacementMap in="goo" in2="furNoise" scale="14" xChannelSelector="R" yChannelSelector="G" result="furEdge" />
+        <feComposite in="furEdge" in2="goo" operator="over" />
+      </filter>
+
+      <!-- Shaggy Long Fur Filter (Wild Shaggy Hair Tufts) -->
+      <filter id="shaggy-goo" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="11" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.055 0.055" numOctaves="4" result="shaggyNoise" seed="15" />
+        <feDisplacementMap in="goo" in2="shaggyNoise" scale="22" xChannelSelector="R" yChannelSelector="G" result="shaggyFur" />
+        <feComposite in="shaggyFur" in2="goo" operator="over" />
       </filter>
     </defs>
   `;
@@ -123,7 +142,7 @@ function ensureGooFilter() {
 
 class KawaiiAgent extends HTMLElement {
   static get observedAttributes() {
-    return ['persona', 'state', 'shape', 'size', 'track-mouse', 'badge'];
+    return ['persona', 'state', 'shape', 'size', 'fluff', 'track-mouse', 'badge'];
   }
 
   constructor() {
@@ -131,6 +150,7 @@ class KawaiiAgent extends HTMLElement {
     this._state = 'idle';
     this._persona = 'mochi';
     this._shape = null; // null = derive from persona
+    this._fluff = 'fluffy'; // 'fluffy' | 'shaggy' | 'smooth'
     this._size = 240;
     this._badge = '';
     this._trackMouse = false;
@@ -164,6 +184,8 @@ class KawaiiAgent extends HTMLElement {
       this.persona = newValue;
     } else if (name === 'shape') {
       this.shape = newValue;
+    } else if (name === 'fluff') {
+      this.fluff = newValue;
     } else if (name === 'state') {
       this.state = newValue;
     } else if (name === 'size') {
@@ -172,6 +194,15 @@ class KawaiiAgent extends HTMLElement {
       this.badge = newValue;
     } else if (name === 'track-mouse') {
       this.enableMouseTracking(this.hasAttribute('track-mouse') && newValue !== 'false');
+    }
+  }
+
+  get fluff() { return this._fluff || 'fluffy'; }
+  set fluff(val) {
+    this._fluff = val || 'fluffy';
+    const container = this.querySelector('.kawaii-character');
+    if (container) {
+      container.setAttribute('data-fluff', this._fluff);
     }
   }
 
@@ -231,6 +262,7 @@ class KawaiiAgent extends HTMLElement {
     if (this.hasAttribute('shape')) {
       this.shape = this.getAttribute('shape');
     }
+    this.fluff = this.getAttribute('fluff') || 'fluffy';
     this.state = this.getAttribute('state') || 'idle';
     this.size = this.getAttribute('size') || '240px';
     this.badge = this.getAttribute('badge') || '';
@@ -238,17 +270,41 @@ class KawaiiAgent extends HTMLElement {
 
   render() {
     const shape = this.effectiveShape;
+    const fluff = this.fluff;
     this.innerHTML = `
-      <div class="kawaii-character" data-state="${this._state}" data-persona="${this._persona}" data-shape="${shape}" data-show-badge="${this._badge ? 'true' : 'false'}">
+      <div class="kawaii-character" data-state="${this._state}" data-persona="${this._persona}" data-shape="${shape}" data-fluff="${fluff}" data-show-badge="${this._badge ? 'true' : 'false'}">
         <!-- Optional status badge -->
         <div class="kawaii-badge">${this._badge}</div>
 
-        <!-- Layer 1: The Morphing Gooey Geometrical Background -->
+        <!-- Fluffy Ears -->
+        <div class="ear-fluffs">
+          <div class="ear-fluff left-ear"></div>
+          <div class="ear-fluff right-ear"></div>
+        </div>
+
+        <!-- Fluffy Head Crown Tuft / Sprout -->
+        <div class="head-fluff">
+          <span class="fur-strand strand-1"></span>
+          <span class="fur-strand strand-2"></span>
+          <span class="fur-strand strand-3"></span>
+        </div>
+
+        <!-- Layer 1: The Morphing Fluffy Gooey Geometrical Background -->
         <div class="goo-container">
           <div class="blob blob-1"></div>
           <div class="blob blob-2"></div>
           <div class="blob blob-3"></div>
           <div class="blob blob-4"></div>
+        </div>
+
+        <!-- Fluffy Cheek Fur Whispers -->
+        <div class="cheek-fluff cheek-fluff-left">
+          <span class="whisker whisker-1"></span>
+          <span class="whisker whisker-2"></span>
+        </div>
+        <div class="cheek-fluff cheek-fluff-right">
+          <span class="whisker whisker-1"></span>
+          <span class="whisker whisker-2"></span>
         </div>
 
         <!-- Layer 2: The Kawaii Face (Sits safely on top, untouched by the filter) -->
